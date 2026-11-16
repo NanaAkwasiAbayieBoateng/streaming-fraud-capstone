@@ -3,6 +3,8 @@
 **Status:** Scaffold built — runnable · **Roadmap stage:** Advanced (Project P6, capstone)
 Part of the [ML / AI Engineer Roadmap](https://github.com/NanaAkwasiAbayieBoateng/ai-ml-engineer-roadmap) — full plan in the roadmap's [P6 deep-dive](https://github.com/NanaAkwasiAbayieBoateng/ai-ml-engineer-roadmap/blob/main/projects/p6-streaming-capstone.md).
 
+📖 New here? Read [BLOG_POST.md](BLOG_POST.md) — a file-by-file walkthrough of the whole project.
+
 The [fraud scorer](https://github.com/NanaAkwasiAbayieBoateng/end_to_end_fraud_ml_project) grown into a real-time system: streaming transaction events → windowed features → a feature store with point-in-time-correct reads → a scoring service (demo model + rules fallback). Everything runs **locally and free**: no cloud account, no paid services, and the default path needs no Kafka cluster.
 
 ## Run commands
