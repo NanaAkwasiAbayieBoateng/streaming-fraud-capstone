@@ -1,0 +1,79 @@
+# Full streaming mode: Redpanda (free, Apache 2.0, Kafka-API compatible)
+# as the broker, plus the scoring app.
+#
+#   docker compose up -d redpanda     # start the broker
+#   docker compose run --rm producer  # publish synthetic events
+#   docker compose up app             # scoring service skeleton
+#
+# Redpanda's Kafka API is exposed on localhost:19092 for tools running
+# on the host (the producer's default --bootstrap-servers value).
+# Inside the compose network the app uses redpanda:9092.
+
+services:
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:v24.2.7
+    command:
+      - redpanda
+      - start
+      - --kafka-addr
+      - internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr
+      - internal://redpanda:9092,external://localhost:19092
+      - --pandaproxy-addr
+      - internal://0.0.0.0:8082,external://0.0.0.0:18082
+      - --advertise-pandaproxy-addr
+      - internal://redpanda:8082,external://localhost:18082
+      - --schema-registry-addr
+      - internal://0.0.0.0:8081,external://0.0.0.0:18081
+      - --rpc-addr
+      - redpanda:33145
+      - --advertise-rpc-addr
+      - redpanda:33145
+      - --smp
+      - "1"
+      - --default-log-partitions
+      - "1"
+      - --overprovisioned
+      - --memory
+      - 512M
+    ports:
+      - "19092:19092" # Kafka API (host tools)
+      - "18082:18082" # Pandaproxy (HTTP)
+      - "18081:18081" # Schema registry
+      - "19644:9644" # Admin / metrics
+    healthcheck:
+      test: ["CMD-SHELL", "rpk cluster health | grep -E 'Healthy:.+true' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+  app:
+    build: .
+    # Skeleton: the app service currently runs the local demo pipeline.
+    # The production wiring (Kafka source -> Bytewax flow -> sink) swaps
+    # the TestingSource line in streaming_fraud/flow.py for the Kafka
+    # source connector; see docs/tradeoffs.md.
+    command: ["python", "scripts/run_local_demo.py", "--n", "500"]
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: redpanda:9092
+    depends_on:
+      redpanda:
+        condition: service_healthy
+    volumes:
+      - ./models:/app/models
+
+  producer:
+    build: .
+    command:
+      - python
+      - -m
+      - streaming_fraud.producer
+      - --kafka
+      - --bootstrap-servers
+      - redpanda:9092
+      - --n
+      - "200"
+    depends_on:
+      redpanda:
+        condition: service_healthy
+    profiles: ["tools"]

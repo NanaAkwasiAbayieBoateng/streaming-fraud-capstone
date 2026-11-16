@@ -8,3 +8,7 @@ venv/
 data/
 mlruns/
 .pytest_cache/
+*.db
+events.jsonl
+outputs/
+models/*.joblib

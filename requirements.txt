@@ -1,0 +1,5 @@
+bytewax==0.21.1
+scikit-learn>=1.5
+pandas>=2.0
+joblib>=1.4
+pytest>=8.0
